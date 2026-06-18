@@ -44,15 +44,16 @@ export default function TrashPage() {
 
   return (
     <div className="flex h-[calc(100vh-56px)] bg-[#f9fafb]">
-      {/* List */}
-      <div className="w-[300px] shrink-0 border-r border-[#e2e6ef] bg-white overflow-y-auto">
+      {/* List — hidden on mobile when a message is open */}
+      <div
+        className={`${
+          selected ? "hidden md:flex" : "flex"
+        } w-full md:w-[300px] md:shrink-0 flex-col border-r border-[#e2e6ef] bg-white overflow-y-auto`}
+      >
         <div className="flex items-center justify-between border-b border-[#e2e6ef] px-4 py-3">
           <span className="text-sm font-bold text-[#111827]">Trash</span>
           {items.length > 0 && (
-            <button
-              onClick={deleteAll}
-              className="text-xs font-semibold text-[#dc2626] hover:underline"
-            >
+            <button onClick={deleteAll} className="text-xs font-semibold text-[#dc2626] hover:underline">
               Empty trash
             </button>
           )}
@@ -86,14 +87,28 @@ export default function TrashPage() {
         )}
       </div>
 
-      {/* Viewer */}
-      <div className="flex flex-1 flex-col bg-white">
+      {/* Viewer — full screen on mobile when selected */}
+      <div
+        className={`${
+          selected ? "flex" : "hidden md:flex"
+        } flex-1 flex-col bg-white overflow-y-auto`}
+      >
         {selectedItem ? (
           <>
-            <div className="flex items-center justify-between border-b border-[#e2e6ef] px-5 py-3">
-              <p className="text-xs text-[#9ca3af]">
-                This message will be permanently deleted after 30 days.
-              </p>
+            {/* Toolbar with back button on mobile */}
+            <div className="flex items-center justify-between border-b border-[#e2e6ef] px-3 py-3 md:px-5">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSelected(null)}
+                  className="flex h-8 w-8 items-center justify-center rounded text-[#6b7280] hover:bg-[#f3f4f6] md:hidden"
+                  title="Back"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                <p className="text-xs text-[#9ca3af]">Permanently deleted after 30 days.</p>
+              </div>
               <button
                 onClick={() => restore(selectedItem.id)}
                 className="rounded-lg border border-[#e2e6ef] px-3 py-1.5 text-xs font-semibold text-[#243ea7] hover:bg-[#eef2ff] transition"
@@ -101,8 +116,8 @@ export default function TrashPage() {
                 Restore to Inbox
               </button>
             </div>
-            <div className="p-6">
-              <h1 className="text-lg font-bold text-[#111827]">{selectedItem.subject}</h1>
+            <div className="p-4 md:p-6">
+              <h1 className="text-base font-bold text-[#111827] md:text-lg">{selectedItem.subject}</h1>
               <p className="mt-1 text-xs text-[#9ca3af]">From: {selectedItem.from}</p>
               <p className="mt-5 text-sm leading-7 text-[#374151]">{selectedItem.preview}</p>
             </div>

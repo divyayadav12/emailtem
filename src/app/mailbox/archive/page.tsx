@@ -51,9 +51,13 @@ export default function ArchivePage() {
 
   return (
     <div className="flex h-[calc(100vh-56px)] bg-[#f9fafb]">
-      {/* List */}
-      <div className="w-[300px] shrink-0 border-r border-[#e2e6ef] bg-white flex flex-col overflow-hidden">
-        <div className="border-b border-[#e2e6ef] px-4 py-3">
+      {/* List — hidden on mobile when a message is open */}
+      <div
+        className={`${
+          selected ? "hidden md:flex" : "flex"
+        } w-full md:w-[300px] md:shrink-0 flex-col border-r border-[#e2e6ef] bg-white overflow-hidden`}
+      >
+        <div className="border-b border-[#e2e6ef] px-4 py-3 shrink-0">
           <span className="text-sm font-bold text-[#111827]">Archive</span>
           <div className="mt-2 flex items-center gap-2 rounded-lg border border-[#e2e6ef] bg-[#f3f4f6] px-3 py-1.5">
             <svg className="h-3.5 w-3.5 text-[#9ca3af]" fill="none" viewBox="0 0 24 24">
@@ -98,26 +102,45 @@ export default function ArchivePage() {
         </div>
       </div>
 
-      {/* Viewer */}
-      <div className="flex flex-1 flex-col bg-white">
+      {/* Viewer — full screen on mobile when selected */}
+      <div
+        className={`${
+          selected ? "flex" : "hidden md:flex"
+        } flex-1 flex-col bg-white overflow-y-auto`}
+      >
         {selectedItem ? (
-          <div className="p-6">
-            <div className="flex items-start justify-between">
-              <h1 className="text-lg font-bold text-[#111827]">{selectedItem.subject}</h1>
-              {selectedItem.tag && (
-                <span className={`rounded px-2 py-0.5 text-xs font-bold ${selectedItem.tag.color}`}>
-                  {selectedItem.tag.label}
-                </span>
-              )}
+          <>
+            {/* Toolbar with back button on mobile */}
+            <div className="flex items-center gap-2 border-b border-[#e2e6ef] px-3 py-3 md:px-5">
+              <button
+                onClick={() => setSelected(null)}
+                className="flex h-8 w-8 items-center justify-center rounded text-[#6b7280] hover:bg-[#f3f4f6] md:hidden"
+                title="Back"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <span className="text-sm font-semibold text-[#374151]">Archived Message</span>
             </div>
-            <p className="mt-1 text-xs text-[#9ca3af]">
-              From: {selectedItem.from} · Archived {selectedItem.archivedAt}
-            </p>
-            <p className="mt-5 text-sm leading-7 text-[#374151]">{selectedItem.preview}</p>
-            <button className="mt-6 rounded-lg border border-[#e2e6ef] px-3 py-1.5 text-xs font-semibold text-[#243ea7] hover:bg-[#eef2ff] transition">
-              Move to Inbox
-            </button>
-          </div>
+            <div className="p-4 md:p-6">
+              <div className="flex items-start justify-between gap-3">
+                <h1 className="text-base font-bold text-[#111827] md:text-lg">{selectedItem.subject}</h1>
+                {selectedItem.tag && (
+                  <span className={`shrink-0 rounded px-2 py-0.5 text-xs font-bold ${selectedItem.tag.color}`}>
+                    {selectedItem.tag.label}
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-[#9ca3af]">
+                From: {selectedItem.from} · Archived {selectedItem.archivedAt}
+              </p>
+              <p className="mt-5 text-sm leading-7 text-[#374151]">{selectedItem.preview}</p>
+              <button className="mt-6 rounded-lg border border-[#e2e6ef] px-3 py-1.5 text-xs font-semibold text-[#243ea7] hover:bg-[#eef2ff] transition">
+                Move to Inbox
+              </button>
+            </div>
+          </>
         ) : (
           <div className="flex flex-1 items-center justify-center">
             <div className="text-center">

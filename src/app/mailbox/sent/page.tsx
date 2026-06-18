@@ -39,8 +39,12 @@ export default function SentPage() {
 
   return (
     <div className="flex h-[calc(100vh-56px)] bg-[#f9fafb]">
-      {/* List */}
-      <div className="w-[300px] shrink-0 border-r border-[#e2e6ef] bg-white overflow-y-auto">
+      {/* List — hidden on mobile when a message is open */}
+      <div
+        className={`${
+          selected ? "hidden md:flex" : "flex"
+        } w-full md:w-[300px] md:shrink-0 flex-col border-r border-[#e2e6ef] bg-white overflow-y-auto`}
+      >
         <div className="flex items-center justify-between border-b border-[#e2e6ef] px-4 py-3">
           <span className="text-sm font-bold text-[#111827]">Sent</span>
           <span className="text-xs text-[#9ca3af]">{sentMessages.length} messages</span>
@@ -63,23 +67,42 @@ export default function SentPage() {
         ))}
       </div>
 
-      {/* Viewer */}
-      <div className="flex flex-1 flex-col bg-white">
+      {/* Viewer — full screen on mobile when selected, flex-1 on desktop */}
+      <div
+        className={`${
+          selected ? "flex" : "hidden md:flex"
+        } flex-1 flex-col bg-white overflow-y-auto`}
+      >
         {selectedItem ? (
-          <div className="p-6">
-            <h1 className="text-lg font-bold text-[#111827]">{selectedItem.subject}</h1>
-            <div className="mt-2 flex items-center gap-4 text-xs text-[#9ca3af]">
-              <span>To: <span className="text-[#374151] font-medium">{selectedItem.to}</span></span>
-              <span>Sent {selectedItem.sentAt}</span>
+          <div className="flex flex-col h-full">
+            {/* Toolbar with back button on mobile */}
+            <div className="flex items-center gap-2 border-b border-[#e2e6ef] px-3 py-3 md:px-5">
+              <button
+                onClick={() => setSelected(null)}
+                className="flex h-8 w-8 items-center justify-center rounded text-[#6b7280] hover:bg-[#f3f4f6] md:hidden"
+                title="Back"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <span className="text-sm font-semibold text-[#374151]">Sent Message</span>
             </div>
-            <p className="mt-5 text-sm leading-7 text-[#374151]">{selectedItem.preview}</p>
-            <div className="mt-6 flex gap-2">
-              <button className="rounded-lg border border-[#e2e6ef] px-3 py-1.5 text-xs font-semibold text-[#374151] hover:bg-[#f3f4f6] transition">
-                Forward
-              </button>
-              <button className="rounded-lg border border-[#e2e6ef] px-3 py-1.5 text-xs font-semibold text-[#dc2626] hover:bg-[#fef2f2] transition">
-                Delete
-              </button>
+            <div className="p-4 md:p-6">
+              <h1 className="text-base font-bold text-[#111827] md:text-lg">{selectedItem.subject}</h1>
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#9ca3af]">
+                <span>To: <span className="text-[#374151] font-medium">{selectedItem.to}</span></span>
+                <span>Sent {selectedItem.sentAt}</span>
+              </div>
+              <p className="mt-5 text-sm leading-7 text-[#374151]">{selectedItem.preview}</p>
+              <div className="mt-6 flex gap-2">
+                <button className="rounded-lg border border-[#e2e6ef] px-3 py-1.5 text-xs font-semibold text-[#374151] hover:bg-[#f3f4f6] transition">
+                  Forward
+                </button>
+                <button className="rounded-lg border border-[#e2e6ef] px-3 py-1.5 text-xs font-semibold text-[#dc2626] hover:bg-[#fef2f2] transition">
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         ) : (
