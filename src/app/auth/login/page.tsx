@@ -60,7 +60,7 @@ export default function LoginPage() {
 
     if (match) {
       login(match.user);
-      router.push(getDashboard(match.user.role));
+      router.push("/auth/mfa");
       return;
     }
 

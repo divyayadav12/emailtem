@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 const mailboxNav = [
   {
@@ -73,6 +74,7 @@ const mailboxNav = [
   },
 ];
 
+// ADMIN NAVIGATION - for super_admin role
 const adminNav = [
   {
     label: "Domains",
@@ -133,6 +135,46 @@ const adminNav = [
   },
 ];
 
+// MANAGER NAVIGATION - for manager role
+const managerNav = [
+  {
+    label: "Accounts",
+    href: "/manager/accounts",
+    icon: (
+      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+        <path
+          d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+        <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.8" />
+        <path
+          d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    label: "Storage Quotas",
+    href: "/manager/quotas",
+    icon: (
+      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+        <path
+          d="M3 6h18M7 3v14M17 3v14"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+        <rect x="2" y="17" width="20" height="2" rx="1" stroke="currentColor" strokeWidth="1.8" />
+      </svg>
+    ),
+  },
+];
+
 const bottomNav = [
   { label: "Support", href: "/support" },
   { label: "Archive", href: "/mailbox/archive" },
@@ -142,6 +184,16 @@ type SidebarProps = { mode?: "mailbox" | "admin" };
 
 export function Sidebar({ mode = "mailbox" }: SidebarProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
+  
+  // Determine which navigation to show based on role
+  const isManager = user?.role === "manager";
+  const isAdmin = user?.role === "super_admin";
+  
+  // Select appropriate nav array based on role
+  const enterpriseNav = isManager ? managerNav : adminNav;
+  const sectionTitle = isManager ? "Manager Portal" : "Enterprise Admin";
+  const sectionSubtitle = isManager ? "Team Management" : "Precision Security";
 
   return (
     <aside
@@ -226,13 +278,13 @@ export function Sidebar({ mode = "mailbox" }: SidebarProps) {
 
       <div className="mt-5 px-3">
         <p className="mb-1 px-2 text-[10px] font-bold uppercase tracking-widest text-[#9ca3af]">
-          Enterprise Admin
+          {sectionTitle}
         </p>
         <p className="mb-1 px-2 text-[10px] text-[#b0b7c3]">
-          Precision Security
+          {sectionSubtitle}
         </p>
         <nav className="space-y-0.5">
-          {adminNav.map(({ label, href, icon }) => {
+          {enterpriseNav.map(({ label, href, icon }) => {
             const active = pathname === href;
             return (
               <Link

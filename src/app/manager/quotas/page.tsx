@@ -3,10 +3,10 @@
 import { useState } from "react";
 
 const initialQuotas = [
-  { id: 1, mailbox: "admin@securemail.com", used: 4.2, limit: 10, unit: "GB" },
-  { id: 2, mailbox: "ops@enterprise.com", used: 8.9, limit: 10, unit: "GB" },
-  { id: 3, mailbox: "sarah.m@enterprise.com", used: 2.1, limit: 5, unit: "GB" },
-  { id: 4, mailbox: "j.patel@enterprise.com", used: 4.8, limit: 5, unit: "GB" },
+  { id: 1, mailbox: "sarah.m@enterprise.com", used: 4.2, limit: 10, unit: "GB" },
+  { id: 2, mailbox: "john.p@enterprise.com", used: 8.9, limit: 10, unit: "GB" },
+  { id: 3, mailbox: "emily.c@enterprise.com", used: 2.1, limit: 5, unit: "GB" },
+  { id: 4, mailbox: "michael.b@enterprise.com", used: 4.8, limit: 5, unit: "GB" },
   { id: 5, mailbox: "new.user@enterprise.com", used: 0.1, limit: 5, unit: "GB" },
 ];
 
@@ -36,9 +36,9 @@ export default function QuotasPage() {
     <div className="min-h-[calc(100vh-56px)] bg-[#f9fafb] p-6">
       <div className="mx-auto max-w-3xl">
         <div className="mb-6">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#243ea7]">Enterprise Admin</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#243ea7]">Manager Portal</p>
           <h1 className="mt-1 text-xl font-bold text-[#111827]">Storage Quotas</h1>
-          <p className="mt-1 text-sm text-[#6b7280]">Monitor and adjust mailbox storage allocations across all accounts.</p>
+          <p className="mt-1 text-sm text-[#6b7280]">Monitor and adjust team mailbox storage allocations.</p>
         </div>
 
         {/* Summary cards */}

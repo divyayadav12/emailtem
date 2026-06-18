@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Sparkles } from "lucide-react";
 
 const drafts = [
   {
@@ -28,6 +29,7 @@ const drafts = [
 
 export default function DraftsPage() {
   const [selected, setSelected] = useState<string | null>(null);
+  const [showAIMenu, setShowAIMenu] = useState(false);
 
   return (
     <div className="flex h-[calc(100vh-56px)] bg-[#f9fafb]">
@@ -69,7 +71,56 @@ export default function DraftsPage() {
             return (
               <div className="flex flex-1 flex-col bg-white">
                 <div className="flex items-center justify-between border-b border-[#e2e6ef] px-5 py-3">
-                  <h2 className="text-sm font-bold text-[#111827]">Edit Draft</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-sm font-bold text-[#111827]">Edit Draft</h2>
+                    {/* AI Logo Button with Notification Dot */}
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowAIMenu(!showAIMenu)}
+                        className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 text-white shadow-sm hover:shadow-md transition ml-2"
+                        title="AI Assistant"
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        {/* Notification dot */}
+                        <span className="absolute top-0 right-0 h-2.5 w-2.5 bg-orange-500 rounded-full border border-white"></span>
+                      </button>
+                      
+                      {showAIMenu && (
+                        <div className="absolute right-0 mt-2 w-48 rounded-lg bg-white border border-gray-200 shadow-lg z-50">
+                          <button
+                            onClick={() => {
+                              console.log("AI Summary clicked");
+                              setShowAIMenu(false);
+                            }}
+                            className="w-full px-4 py-3 text-left text-sm font-medium text-[#111827] hover:bg-[#f3f4f6] rounded-t-lg transition flex items-center gap-2"
+                          >
+                            <Sparkles className="h-4 w-4 text-purple-500" />
+                            AI Summary
+                          </button>
+                          <button
+                            onClick={() => {
+                              console.log("AI Generate clicked");
+                              setShowAIMenu(false);
+                            }}
+                            className="w-full px-4 py-3 text-left text-sm font-medium text-[#111827] hover:bg-[#f3f4f6] transition flex items-center gap-2 border-t border-gray-100"
+                          >
+                            <Sparkles className="h-4 w-4 text-blue-500" />
+                            AI Generate
+                          </button>
+                          <button
+                            onClick={() => {
+                              console.log("AI Correction clicked");
+                              setShowAIMenu(false);
+                            }}
+                            className="w-full px-4 py-3 text-left text-sm font-medium text-[#111827] hover:bg-[#f3f4f6] rounded-b-lg transition flex items-center gap-2 border-t border-gray-100"
+                          >
+                            <Sparkles className="h-4 w-4 text-orange-500" />
+                            AI Correction
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   <div className="flex gap-2">
                     <button className="rounded-lg border border-[#e2e6ef] px-3 py-1.5 text-xs font-semibold text-[#374151] hover:bg-[#f3f4f6] transition">
                       Discard
