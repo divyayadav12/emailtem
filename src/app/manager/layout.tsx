@@ -1,14 +1,14 @@
+import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 
-export default function ManagerLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function ManagerLayout({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-screen bg-slate-50">
-      <Topbar />
-      {children}
-    </main>
+    <div className="flex h-screen overflow-hidden bg-white">
+      <Sidebar mode="admin" />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Topbar />
+        <div className="flex-1 overflow-y-auto">{children}</div>
+      </div>
+    </div>
   );
 }
