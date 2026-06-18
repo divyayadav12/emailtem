@@ -2,12 +2,12 @@
 
 import type { Message } from "@/types";
 
-type Props = { message: Message | undefined };
+type Props = { message: Message | undefined; onBack?: () => void };
 
-export function MailViewer({ message }: Props) {
+export function MailViewer({ message, onBack }: Props) {
   if (!message) {
     return (
-      <div className="flex flex-1 items-center justify-center bg-[#f9fafb] text-sm text-[#9ca3af]">
+      <div className="hidden md:flex flex-1 items-center justify-center bg-[#f9fafb] text-sm text-[#9ca3af]">
         Select an email to read
       </div>
     );
@@ -25,8 +25,20 @@ export function MailViewer({ message }: Props) {
   return (
     <div className="flex flex-1 flex-col bg-white overflow-y-auto">
       {/* Viewer toolbar */}
-      <div className="flex items-center justify-between border-b border-[#e2e6ef] px-5 py-3">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between border-b border-[#e2e6ef] px-3 py-3 md:px-5">
+        <div className="flex items-center gap-1 md:gap-2">
+          {/* Back button — mobile only */}
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="flex h-8 w-8 items-center justify-center rounded text-[#6b7280] hover:bg-[#f3f4f6] md:hidden"
+              title="Back"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+                <path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
           {/* Archive */}
           <button className="flex h-8 w-8 items-center justify-center rounded text-[#6b7280] hover:bg-[#f3f4f6]" title="Archive">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -90,10 +102,10 @@ export function MailViewer({ message }: Props) {
       </div>
 
       {/* Email content */}
-      <div className="flex-1 px-6 py-5">
+      <div className="flex-1 px-4 py-4 md:px-6 md:py-5">
         {/* Subject + star */}
         <div className="flex items-start justify-between gap-4">
-          <h1 className="text-xl font-bold text-[#111827] leading-snug">{message.subject}</h1>
+          <h1 className="text-base font-bold text-[#111827] leading-snug md:text-xl">{message.subject}</h1>
           <button className="mt-0.5 shrink-0 text-[#d1d5db] hover:text-[#f59e0b] transition">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
