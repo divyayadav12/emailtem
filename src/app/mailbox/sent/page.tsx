@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Sparkles } from "lucide-react";
 
 const sentMessages = [
   {
@@ -35,6 +36,7 @@ const sentMessages = [
 
 export default function SentPage() {
   const [selected, setSelected] = useState<string | null>(null);
+  const [showAIMenu, setShowAIMenu] = useState(false);
   const selectedItem = sentMessages.find((m) => m.id === selected);
 
   return (
@@ -76,17 +78,55 @@ export default function SentPage() {
         {selectedItem ? (
           <div className="flex flex-col h-full">
             {/* Toolbar with back button on mobile */}
-            <div className="flex items-center gap-2 border-b border-[#e2e6ef] px-3 py-3 md:px-5">
-              <button
-                onClick={() => setSelected(null)}
-                className="flex h-8 w-8 items-center justify-center rounded text-[#6b7280] hover:bg-[#f3f4f6] md:hidden"
-                title="Back"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24">
-                  <path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              <span className="text-sm font-semibold text-[#374151]">Sent Message</span>
+            <div className="flex items-center justify-between border-b border-[#e2e6ef] px-3 py-3 md:px-5">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSelected(null)}
+                  className="flex h-8 w-8 items-center justify-center rounded text-[#6b7280] hover:bg-[#f3f4f6] md:hidden"
+                  title="Back"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                <span className="text-sm font-semibold text-[#374151]">Sent Message</span>
+                {/* AI Assistant button */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowAIMenu(!showAIMenu)}
+                    className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-purple-500 to-blue-500 text-white shadow-sm hover:shadow-md transition ml-1"
+                    title="AI Assistant"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span className="absolute top-0 right-0 h-2.5 w-2.5 bg-orange-500 rounded-full border border-white" />
+                  </button>
+                  {showAIMenu && (
+                    <div className="absolute left-0 mt-2 w-48 rounded-lg bg-white border border-gray-200 shadow-lg z-50">
+                      <button
+                        onClick={() => setShowAIMenu(false)}
+                        className="w-full px-4 py-3 text-left text-sm font-medium text-[#111827] hover:bg-[#f3f4f6] rounded-t-lg transition flex items-center gap-2"
+                      >
+                        <Sparkles className="h-4 w-4 text-purple-500" />
+                        AI Summary
+                      </button>
+                      <button
+                        onClick={() => setShowAIMenu(false)}
+                        className="w-full px-4 py-3 text-left text-sm font-medium text-[#111827] hover:bg-[#f3f4f6] transition flex items-center gap-2 border-t border-gray-100"
+                      >
+                        <Sparkles className="h-4 w-4 text-blue-500" />
+                        AI Generate
+                      </button>
+                      <button
+                        onClick={() => setShowAIMenu(false)}
+                        className="w-full px-4 py-3 text-left text-sm font-medium text-[#111827] hover:bg-[#f3f4f6] rounded-b-lg transition flex items-center gap-2 border-t border-gray-100"
+                      >
+                        <Sparkles className="h-4 w-4 text-orange-500" />
+                        AI Correction
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
             <div className="p-4 md:p-6">
               <h1 className="text-base font-bold text-[#111827] md:text-lg">{selectedItem.subject}</h1>

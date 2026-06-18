@@ -29,6 +29,8 @@ const drafts = [
 
 export default function DraftsPage() {
   const [selected, setSelected] = useState<string | null>(null);
+  const [showAIMenu, setShowAIMenu] = useState(false);
+
   const draft = drafts.find((d) => d.id === selected);
 
   return (
@@ -73,9 +75,10 @@ export default function DraftsPage() {
       >
         {draft ? (
           <>
-            {/* Toolbar with back button on mobile */}
+            {/* Toolbar */}
             <div className="flex items-center justify-between border-b border-[#e2e6ef] px-3 py-3 md:px-5">
               <div className="flex items-center gap-2">
+                {/* Back button — mobile only */}
                 <button
                   onClick={() => setSelected(null)}
                   className="flex h-8 w-8 items-center justify-center rounded text-[#6b7280] hover:bg-[#f3f4f6] md:hidden"
@@ -86,6 +89,42 @@ export default function DraftsPage() {
                   </svg>
                 </button>
                 <h2 className="text-sm font-bold text-[#111827]">Edit Draft</h2>
+                {/* AI Assistant button */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowAIMenu(!showAIMenu)}
+                    className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-purple-500 to-blue-500 text-white shadow-sm hover:shadow-md transition ml-2"
+                    title="AI Assistant"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span className="absolute top-0 right-0 h-2.5 w-2.5 bg-orange-500 rounded-full border border-white" />
+                  </button>
+                  {showAIMenu && (
+                    <div className="absolute left-0 mt-2 w-48 rounded-lg bg-white border border-gray-200 shadow-lg z-50">
+                      <button
+                        onClick={() => setShowAIMenu(false)}
+                        className="w-full px-4 py-3 text-left text-sm font-medium text-[#111827] hover:bg-[#f3f4f6] rounded-t-lg transition flex items-center gap-2"
+                      >
+                        <Sparkles className="h-4 w-4 text-purple-500" />
+                        AI Summary
+                      </button>
+                      <button
+                        onClick={() => setShowAIMenu(false)}
+                        className="w-full px-4 py-3 text-left text-sm font-medium text-[#111827] hover:bg-[#f3f4f6] transition flex items-center gap-2 border-t border-gray-100"
+                      >
+                        <Sparkles className="h-4 w-4 text-blue-500" />
+                        AI Generate
+                      </button>
+                      <button
+                        onClick={() => setShowAIMenu(false)}
+                        className="w-full px-4 py-3 text-left text-sm font-medium text-[#111827] hover:bg-[#f3f4f6] rounded-b-lg transition flex items-center gap-2 border-t border-gray-100"
+                      >
+                        <Sparkles className="h-4 w-4 text-orange-500" />
+                        AI Correction
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex gap-2">
                 <button className="rounded-lg border border-[#e2e6ef] px-3 py-1.5 text-xs font-semibold text-[#374151] hover:bg-[#f3f4f6] transition">
@@ -96,6 +135,8 @@ export default function DraftsPage() {
                 </button>
               </div>
             </div>
+
+            {/* Form fields */}
             <div className="flex-1 p-4 space-y-3 md:p-5">
               <div className="flex items-center gap-3 border-b border-[#f0f2f5] pb-3">
                 <span className="w-14 text-xs font-semibold text-[#6b7280]">To</span>
@@ -114,7 +155,7 @@ export default function DraftsPage() {
                 />
               </div>
               <textarea
-                className="w-full flex-1 resize-none bg-transparent text-sm leading-7 text-[#374151] outline-none"
+                className="w-full resize-none bg-transparent text-sm leading-7 text-[#374151] outline-none"
                 rows={12}
                 defaultValue={draft.preview}
               />
