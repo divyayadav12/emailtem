@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 
 type TopbarProps = { onMenuClick?: () => void };
@@ -9,6 +10,7 @@ type TopbarProps = { onMenuClick?: () => void };
 export function Topbar({ onMenuClick }: TopbarProps) {
   const { logout } = useAuth();
   const router = useRouter();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   function handleLogout() {
     logout();
@@ -65,7 +67,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
         {/* Logout */}
         <button
-          onClick={handleLogout}
+          onClick={() => setShowLogoutConfirm(true)}
           title="Logout"
           className="flex h-8 w-8 items-center justify-center rounded-full text-[#6b7280] hover:bg-[#fee2e2] hover:text-[#dc2626] transition"
         >
@@ -75,6 +77,66 @@ export function Topbar({ onMenuClick }: TopbarProps) {
           </svg>
         </button>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowLogoutConfirm(false)} />
+          <div className="relative z-10 w-full max-w-sm rounded-2xl border border-[#d9dee8] bg-white shadow-2xl">
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-[#e2e6ef] px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#fef2f2]">
+                  <svg className="h-4 w-4 text-[#dc2626]" fill="none" viewBox="0 0 24 24">
+                    <path d="M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#111827]">Sign Out</h3>
+                  <p className="text-xs text-[#6b7280]">End your current session</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-[#6b7280] hover:bg-[#f3f4f6] transition"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="px-5 py-5">
+              <div className="mb-5 rounded-lg bg-[#fef2f2] px-4 py-3">
+                <p className="text-sm font-semibold text-[#b42318]">
+                  Are you sure you want to sign out? You will need to log in again to access your mailbox.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex h-11 flex-1 items-center justify-center rounded-lg border border-[#e2e6ef] text-sm font-semibold text-[#374151] hover:bg-[#f3f4f6] transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[#dc2626] text-sm font-bold text-white shadow-[0_4px_14px_rgba(220,38,38,0.28)] hover:bg-[#b91c1c] transition"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <path d="M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
