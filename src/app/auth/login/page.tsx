@@ -119,11 +119,8 @@ export default function LoginPage() {
 
             {/* Password */}
             <label className="grid gap-2">
-              <span className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-[#374151]">Password</span>
-                <Link className="text-sm font-bold text-[#243ea7] hover:text-[#162b78]" href="/auth/mfa">
-                  Forgot password?
-                </Link>
+              <span className="text-sm font-semibold text-[#374151]">
+                Password
               </span>
               <span className="flex h-12 items-center gap-3 rounded-md border border-[#cfd5df] bg-white px-3 focus-within:border-[#243ea7] focus-within:ring-2 focus-within:ring-[#dbe5ff]">
                 <svg aria-hidden="true" className="h-5 w-5 shrink-0 text-[#6b7280]" fill="none" viewBox="0 0 24 24">
@@ -157,6 +154,14 @@ export default function LoginPage() {
                   )}
                 </button>
               </span>
+              <div className="flex justify-end">
+                <Link
+                  className="text-sm font-bold text-[#243ea7] hover:text-[#162b78]"
+                  href="/auth/forgot-password"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </label>
 
             {/* Remember */}
