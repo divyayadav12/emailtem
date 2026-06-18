@@ -9,11 +9,12 @@ export default function MfaPage() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [verified, setVerified] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(30);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   useEffect(() => {
+    setTimeLeft(30);
     const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev <= 1 ? 30 : prev - 1));
+      setTimeLeft((prev) => (prev === null || prev <= 1 ? 30 : prev - 1));
     }, 1000);
     return () => clearInterval(timer);
   }, []);
@@ -94,13 +95,13 @@ export default function MfaPage() {
                   <path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <p className="text-xs font-semibold text-[#6b7280]">
-                  Code expires in: <span className="text-[#243ea7]">{timeLeft}s</span>
+                  Code expires in: <span className="text-[#243ea7]">{timeLeft ?? 30}s</span>
                 </p>
                 {/* Progress bar */}
                 <div className="ml-auto h-1.5 w-16 rounded-full bg-[#e2e6ef] overflow-hidden">
                   <div
                     className="h-full rounded-full bg-[#243ea7] transition-all duration-1000"
-                    style={{ width: `${(timeLeft / 30) * 100}%` }}
+                    style={{ width: `${((timeLeft ?? 30) / 30) * 100}%` }}
                   />
                 </div>
               </div>
