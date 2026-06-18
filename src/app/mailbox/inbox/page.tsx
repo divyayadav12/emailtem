@@ -5,17 +5,36 @@ import { MailList, messages } from "@/components/mailbox/MailList";
 import { MailViewer } from "@/components/mailbox/MailViewer";
 
 export default function InboxPage() {
-  const [selectedId, setSelectedId] = useState(messages[0].id);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = messages.find((m) => m.id === selectedId);
+
+  function handleSelect(id: string) {
+    setSelectedId(id);
+  }
+
+  function handleBack() {
+    setSelectedId(null);
+  }
 
   return (
     <div className="flex h-[calc(100vh-56px)]">
-      {/* Email list panel — fixed width */}
-      <div className="w-[300px] shrink-0 overflow-hidden">
-        <MailList selectedId={selectedId} onSelect={setSelectedId} />
+      {/* Mail list — hidden on mobile when email is open */}
+      <div
+        className={`${
+          selectedId ? "hidden md:flex" : "flex"
+        } w-full md:w-[300px] md:shrink-0 flex-col overflow-hidden`}
+      >
+        <MailList selectedId={selectedId ?? ""} onSelect={handleSelect} />
       </div>
-      {/* Email viewer — fills remaining space */}
-      <MailViewer message={selected} />
+
+      {/* Mail viewer — full screen on mobile, flex-1 on desktop */}
+      <div
+        className={`${
+          selectedId ? "flex" : "hidden md:flex"
+        } flex-1 flex-col overflow-hidden`}
+      >
+        <MailViewer message={selected} onBack={handleBack} />
+      </div>
     </div>
   );
 }
