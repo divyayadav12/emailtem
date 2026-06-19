@@ -113,19 +113,20 @@ const adminNav: NavItem[] = [
     ),
   },
   {
-    label: "Accounts",
-    href: "/manager/accounts",
+    label: "Users",
+    href: "/admin/users",
     icon: (
       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24">
         <path
-          d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"
+          d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"
           stroke="currentColor"
           strokeWidth="1.8"
           strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.8" />
         <path
-          d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
+          d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
           stroke="currentColor"
           strokeWidth="1.8"
           strokeLinecap="round"
@@ -263,9 +264,9 @@ export function Sidebar({
   // Derive mode from user role if not explicitly passed
   const mode =
     modeProp ??
-    (user?.role === "super_admin"
+    (user?.role?.toLowerCase() === "admin" || user?.role?.toLowerCase() === "super_admin" || user?.email === "admin@enterprise.com"
       ? "admin"
-      : user?.role === "manager"
+      : user?.role?.toLowerCase() === "manager" || user?.email === "manager@enterprise.com"
         ? "manager"
         : "mailbox");
 
@@ -369,7 +370,7 @@ export function Sidebar({
         )}
 
         {/* Manager section */}
-        {mode === "manager" && (
+        {(mode === "manager" || mode === "admin") && (
           <div className="mt-5 px-3">
             <p className="mb-1 px-2 text-[10px] font-bold uppercase tracking-widest text-[#9ca3af]">
               Management

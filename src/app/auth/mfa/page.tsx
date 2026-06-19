@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { api } from "@/services/api";
 
 export default function MfaPage() {
   const router = useRouter();
@@ -10,6 +12,9 @@ export default function MfaPage() {
   const [error, setError] = useState("");
   const [verified, setVerified] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+
+  const { login, setAccessToken } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setTimeLeft(30);
@@ -19,17 +24,51 @@ export default function MfaPage() {
     return () => clearInterval(timer);
   }, []);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     if (!code) { setError("Please enter the 6-digit code from your authenticator app."); return; }
     if (code.length !== 6) { setError("Code must be exactly 6 digits."); return; }
-    if (code === "123456" || code === "000000") {
+
+    const userIdStr = localStorage.getItem("mfa_user_id");
+    const email = localStorage.getItem("mfa_email") || "";
+    if (!userIdStr) {
+      setError("Session expired. Please log in again.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await api.request<{ message: string; access_token: string; role: string }>("/auth/verify-otp", {
+        method: "POST",
+        body: JSON.stringify({ user_id: parseInt(userIdStr, 10), otp: code }),
+      });
+
+      setAccessToken(res.access_token);
+      login({
+        id: userIdStr,
+        name: email.split("@")[0], // Fallback name
+        email: email,
+        role: res.role.toLowerCase(), // role is SUPER_ADMIN, etc.
+        avatar: "",
+      });
+
       setVerified(true);
-      setTimeout(() => { router.push("/mailbox/inbox"); }, 2000);
-    } else {
-      setError("Invalid code. Use 123456 or 000000 for demo.");
+      setTimeout(() => {
+        const role = res.role.toLowerCase();
+        if (role === "super_admin" || role === "admin") {
+          router.push("/admin/users");
+        } else if (role === "manager") {
+          router.push("/manager/accounts");
+        } else {
+          router.push("/mailbox/inbox");
+        }
+      }, 1500);
+    } catch {
+      setError("Invalid or expired OTP code.");
       setCode("");
+    } finally {
+      setLoading(false);
     }
   }
 

@@ -3,61 +3,74 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import type { AuthUser } from "@/types";
-
-const accounts: { user: AuthUser; password: string; label: string; sub: string; color: string; initials: string }[] = [
-  {
-    user: { id: "user-admin", name: "Enterprise Admin", email: "admin@enterprise.com", role: "super_admin" },
-    password: "admin123",
-    label: "Admin",
-    sub: "Full platform access",
-    color: "bg-[#243ea7]",
-    initials: "AD",
-  },
-  {
-    user: { id: "user-manager", name: "Sarah Mitchell", email: "manager@enterprise.com", role: "manager" },
-    password: "manager123",
-    label: "Manager",
-    sub: "Team & quota management",
-    color: "bg-[#0f766e]",
-    initials: "MG",
-  },
-  {
-    user: { id: "user-employee", name: "John Patel", email: "employee@enterprise.com", role: "user" },
-    password: "employee123",
-    label: "Employee",
-    sub: "Personal mailbox access",
-    color: "bg-[#7c3aed]",
-    initials: "EM",
-  },
-];
+import { api } from "@/services/api";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  function handleLogin(e: FormEvent<HTMLFormElement>) {
+  async function handleLogin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
-    const match = accounts.find(
-      (a) => a.user.email === email.trim() && a.password === password,
-    );
-    if (match) {
-      login(match.user);
-      router.push("/auth/mfa");
+
+    if (!email.trim() || !password.trim()) {
+      setError("Please enter your email and password.");
       return;
     }
-    setError("Invalid credentials. Use one of the quick-login options below.");
+
+    setLoading(true);
+    try {
+      const res = await api.request<{ message: string; user_id: number; expires_in: string }>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+
+      // Store user_id for MFA verification
+      localStorage.setItem("mfa_user_id", String(res.user_id));
+      localStorage.setItem("mfa_email", email.trim());
+      router.push("/auth/mfa");
+    } catch {
+      setError("Invalid email or password. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
+  // Quick fill for demo purposes
+  const accounts = [
+    {
+      email: "admin@enterprise.com",
+      password: "admin123",
+      label: "Admin",
+      sub: "Full platform access",
+      color: "bg-[#243ea7]",
+      initials: "AD",
+    },
+    {
+      email: "manager@enterprise.com",
+      password: "manager123",
+      label: "Manager",
+      sub: "Team & quota management",
+      color: "bg-[#0f766e]",
+      initials: "MG",
+    },
+    {
+      email: "employee@enterprise.com",
+      password: "employee123",
+      label: "Employee",
+      sub: "Personal mailbox access",
+      color: "bg-[#7c3aed]",
+      initials: "EM",
+    },
+  ];
+
   function quickFill(acc: (typeof accounts)[number]) {
-    setEmail(acc.user.email);
+    setEmail(acc.email);
     setPassword(acc.password);
     setError("");
   }
@@ -156,29 +169,48 @@ export default function LoginPage() {
             )}
 
             <button
-              className="flex h-11 items-center justify-center gap-2 rounded-md bg-[#283da8] text-sm font-bold text-white shadow-[0_8px_18px_rgba(40,61,168,0.28)] transition hover:bg-[#1e2f8a] sm:h-12"
+              className="flex h-11 items-center justify-center gap-2 rounded-md bg-[#283da8] text-sm font-bold text-white shadow-[0_8px_18px_rgba(40,61,168,0.28)] transition hover:bg-[#1e2f8a] disabled:opacity-60 disabled:cursor-not-allowed sm:h-12"
               type="submit"
+              disabled={loading}
             >
-              Login
+              {loading ? (
+                <>
+                  <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Logging in...
+                </>
+              ) : (
+                "Login"
+              )}
             </button>
           </div>
+
+          {/* Sign up link */}
+          <p className="mt-5 text-center text-sm text-[#4b5563]">
+            Don&apos;t have an account?{" "}
+            <Link className="font-bold text-[#243ea7] hover:text-[#162b78] hover:underline" href="/auth/register">
+              Sign up
+            </Link>
+          </p>
         </form>
 
         {/* Quick login role picker */}
         <div className="mt-5 w-full max-w-115 sm:mt-6">
           <div className="mb-3 flex items-center gap-3">
             <div className="h-px flex-1 bg-[#e2e6ef]" />
-            <span className="text-xs font-semibold text-[#9ca3af]">Login as</span>
+            <span className="text-xs font-semibold text-[#9ca3af]">Quick Fill</span>
             <div className="h-px flex-1 bg-[#e2e6ef]" />
           </div>
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {accounts.map((acc) => (
               <button
-                key={acc.user.role}
+                key={acc.label}
                 type="button"
                 onClick={() => quickFill(acc)}
                 className={`group relative flex flex-col items-center gap-1.5 rounded-xl border-2 bg-white px-2 py-3 text-center transition hover:border-[#243ea7] hover:shadow-md sm:gap-2 sm:px-3 sm:py-4 ${
-                  email === acc.user.email ? "border-[#243ea7] shadow-md" : "border-[#e2e6ef]"
+                  email === acc.email ? "border-[#243ea7] shadow-md" : "border-[#e2e6ef]"
                 }`}
               >
                 <div className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white sm:h-10 sm:w-10 sm:text-sm ${acc.color}`}>
@@ -188,7 +220,7 @@ export default function LoginPage() {
                   <p className="text-xs font-bold text-[#111827] sm:text-sm">{acc.label}</p>
                   <p className="mt-0.5 hidden text-[10px] text-[#6b7280] sm:block">{acc.sub}</p>
                 </div>
-                {email === acc.user.email && (
+                {email === acc.email && (
                   <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#243ea7]">
                     <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24">
                       <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
