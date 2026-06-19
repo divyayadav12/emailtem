@@ -34,6 +34,12 @@ export default function UsersPage() {
     role: "EMPLOYEE",
   });
 
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState("");
+  const [editSuccess, setEditSuccess] = useState("");
+  const [editForm, setEditForm] = useState({ name: "", email: "", role: "" });
+
   // Fetch users
   async function fetchUsers() {
     setLoading(true);
@@ -90,6 +96,48 @@ export default function UsersPage() {
       fetchUsers();
     } catch {
       alert("Failed to disable user.");
+    }
+  }
+
+  // Update user
+  async function handleUpdateUser() {
+    if (!editingUser) return;
+    setEditError("");
+    setEditSuccess("");
+
+    if (!editForm.name.trim() || !editForm.email.trim()) {
+      setEditError("Name and Email are required.");
+      return;
+    }
+
+    setEditLoading(true);
+    try {
+      // Update name/email
+      await api.request(`/users/${editingUser.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ name: editForm.name, email: editForm.email }),
+        token: accessToken || undefined,
+      });
+
+      // Update role if changed
+      if (editForm.role.toUpperCase() !== editingUser.role.toUpperCase()) {
+        await api.request(`/users/${editingUser.id}/role`, {
+          method: "PUT",
+          body: JSON.stringify({ role: editForm.role.toUpperCase() }),
+          token: accessToken || undefined,
+        });
+      }
+
+      setEditSuccess("User updated successfully!");
+      fetchUsers();
+      setTimeout(() => {
+        setEditingUser(null);
+        setEditSuccess("");
+      }, 1500);
+    } catch {
+      setEditError("Failed to update user.");
+    } finally {
+      setEditLoading(false);
     }
   }
 
@@ -243,10 +291,15 @@ export default function UsersPage() {
                         </td>
                         <td className="px-5 py-3.5 text-right">
                           <button
-                            onClick={() => handleDisableUser(u.id)}
-                            className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[#b42318] transition hover:bg-[#fef2f2]"
+                            onClick={() => {
+                              setEditingUser(u);
+                              setEditForm({ name: u.name, email: u.email, role: u.role });
+                              setEditError("");
+                              setEditSuccess("");
+                            }}
+                            className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[#243ea7] transition hover:bg-[#eef2ff]"
                           >
-                            Disable
+                            Edit
                           </button>
                         </td>
                       </tr>
@@ -363,6 +416,94 @@ export default function UsersPage() {
                 ) : (
                   "Create User"
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal */}
+      {editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-xl border border-[#d9dee8] bg-white p-6 shadow-2xl sm:p-8">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-[#111827]">Edit User</h2>
+              <button
+                onClick={() => setEditingUser(null)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-[#6b7280] transition hover:bg-[#f3f4f6]"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="grid gap-4">
+              {/* Name */}
+              <label className="grid gap-1.5">
+                <span className="text-sm font-semibold text-[#374151]">Full Name</span>
+                <input
+                  className="h-11 rounded-md border border-[#cfd5df] bg-white px-3 text-sm font-medium text-[#111827] outline-none focus:border-[#243ea7] focus:ring-2 focus:ring-[#dbe5ff]"
+                  placeholder="John Doe"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                />
+              </label>
+
+              {/* Email */}
+              <label className="grid gap-1.5">
+                <span className="text-sm font-semibold text-[#374151]">Email</span>
+                <input
+                  className="h-11 rounded-md border border-[#cfd5df] bg-white px-3 text-sm font-medium text-[#111827] outline-none focus:border-[#243ea7] focus:ring-2 focus:ring-[#dbe5ff]"
+                  placeholder="user@enterprise.com"
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                />
+              </label>
+
+              {/* Role */}
+              <label className="grid gap-1.5">
+                <span className="text-sm font-semibold text-[#374151]">Role</span>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { value: "ADMIN", label: "Admin", color: "bg-[#243ea7]" },
+                    { value: "MANAGER", label: "Manager", color: "bg-[#0f766e]" },
+                    { value: "EMPLOYEE", label: "Employee", color: "bg-[#7c3aed]" },
+                  ].map((r) => (
+                    <button
+                      key={r.value}
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, role: r.value })}
+                      className={`flex items-center justify-center gap-2 rounded-lg border-2 px-3 py-2.5 text-sm font-bold transition ${
+                        editForm.role.toUpperCase() === r.value
+                          ? "border-[#243ea7] bg-[#eef2ff] text-[#243ea7]"
+                          : "border-[#e2e6ef] text-[#4b5563] hover:border-[#243ea7]"
+                      }`}
+                    >
+                      <span className={`h-2 w-2 rounded-full ${r.color}`} />
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              </label>
+
+              {/* Error */}
+              {editError && (
+                <p className="rounded-md bg-[#fef2f2] px-3 py-2 text-sm font-semibold text-[#b42318]">{editError}</p>
+              )}
+
+              {/* Success */}
+              {editSuccess && (
+                <p className="rounded-md bg-[#f0fdf4] px-3 py-2 text-sm font-semibold text-[#15803d]">{editSuccess}</p>
+              )}
+
+              <button
+                onClick={handleUpdateUser}
+                disabled={editLoading}
+                className="flex h-11 items-center justify-center gap-2 rounded-md bg-[#243ea7] text-sm font-bold text-white shadow-md shadow-[#243ea7]/25 transition hover:bg-[#1e2f8a] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {editLoading ? "Updating..." : "Save Changes"}
               </button>
             </div>
           </div>

@@ -26,13 +26,11 @@ export default function ForgotPasswordPage() {
 
     setLoading(true);
     try {
-      const res = await api.request<{ message: string; reset_token: string }>("/auth/forgot-password", {
+      await api.request<{ message: string }>("/auth/forgot-password", {
         method: "POST",
         body: JSON.stringify({ email: email.trim() }),
       });
       
-      // Store the token (in a real app this goes to email, but here we show it so the user can copy/paste it)
-      setResetToken(res.reset_token);
       setStep("RESET_PASSWORD");
     } catch (err: any) {
       setError(err.message || "Failed to request reset token.");
@@ -100,7 +98,7 @@ export default function ForgotPasswordPage() {
                 </svg>
               </div>
               <h2 className="text-lg font-bold text-[#111827] sm:text-xl">Forgot Password</h2>
-              <p className="mt-1 text-sm text-[#4b5563]">Enter your email to receive a secure reset token.</p>
+              <p className="mt-1 text-sm text-[#4b5563]">Enter your email to receive a secure OTP.</p>
             </div>
 
             <div className="grid gap-4 sm:gap-5">
@@ -133,7 +131,7 @@ export default function ForgotPasswordPage() {
                 className="flex h-11 items-center justify-center gap-2 rounded-md bg-[#283da8] text-sm font-bold text-white shadow-[0_8px_18px_rgba(40,61,168,0.28)] transition hover:bg-[#1e2f8a] disabled:opacity-70 sm:h-12"
                 type="submit"
               >
-                {loading ? "Requesting..." : "Get Reset Token"}
+                {loading ? "Sending..." : "Send OTP"}
               </button>
             </div>
 
@@ -157,21 +155,20 @@ export default function ForgotPasswordPage() {
                 </svg>
               </div>
               <h2 className="text-lg font-bold text-[#111827] sm:text-xl">Reset Password</h2>
-              <p className="mt-1 text-sm text-[#4b5563]">Enter the reset token (OTP) and your new password.</p>
+              <p className="mt-1 text-sm text-[#4b5563]">Enter the 6-digit OTP sent to your email and your new password.</p>
             </div>
 
-            {/* Note about token (mock email scenario) */}
             <div className="mb-5 rounded-md bg-[#eff6ff] p-3 text-xs font-semibold text-[#1d4ed8]">
-              <p>For demo purposes, your reset token was automatically filled. In production, this would be sent to your email.</p>
+              <p>An OTP has been sent to your email. Please check your inbox and spam folder.</p>
             </div>
 
             <div className="grid gap-4 sm:gap-5">
               <label className="grid gap-2">
-                <span className="text-sm font-semibold text-[#374151]">Reset Token</span>
+                <span className="text-sm font-semibold text-[#374151]">Verification Code (OTP)</span>
                 <span className="flex h-11 items-center gap-3 rounded-md border border-[#cfd5df] bg-white px-3 focus-within:border-[#243ea7] focus-within:ring-2 focus-within:ring-[#dbe5ff] sm:h-12">
                   <input
                     className="h-full min-w-0 flex-1 border-0 bg-transparent text-sm font-medium text-[#111827] outline-none placeholder:text-[#8a93a3]"
-                    placeholder="Enter reset token"
+                    placeholder="000000"
                     type="text"
                     value={resetToken}
                     onChange={(e) => setResetToken(e.target.value)}

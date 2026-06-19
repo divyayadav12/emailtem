@@ -27,7 +27,7 @@ export default function MfaPage() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
-    if (!code) { setError("Please enter the 6-digit code from your authenticator app."); return; }
+    if (!code) { setError("Please enter the 6-digit code sent to your email."); return; }
     if (code.length !== 6) { setError("Code must be exactly 6 digits."); return; }
 
     const userIdStr = localStorage.getItem("mfa_user_id");
@@ -102,13 +102,13 @@ export default function MfaPage() {
                 <h2 className="text-lg font-bold text-[#111827] sm:text-xl">Two-Factor Authentication</h2>
                 <span className="shrink-0 rounded-full bg-[#243ea7] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Secure</span>
               </div>
-              <p className="text-sm text-[#4b5563]">Enter the 6-digit code from your authenticator app.</p>
+              <p className="text-sm text-[#4b5563]">Enter the 6-digit code sent to your email.</p>
             </div>
 
             <div className="grid gap-4 sm:gap-5">
               {/* Code input */}
               <label className="grid gap-2">
-                <span className="text-sm font-semibold text-[#374151]">Authenticator Code</span>
+                <span className="text-sm font-semibold text-[#374151]">Verification Code</span>
                 <span className="flex h-11 items-center gap-3 rounded-md border border-[#cfd5df] bg-white px-3 focus-within:border-[#243ea7] focus-within:ring-2 focus-within:ring-[#dbe5ff] sm:h-12">
                   <svg aria-hidden="true" className="h-5 w-5 shrink-0 text-[#6b7280]" fill="none" viewBox="0 0 24 24">
                     <path d="M12 3.5l6 2.2v5.1c0 4-2.4 7.6-6 9.1-3.6-1.5-6-5.1-6-9.1V5.7l6-2.2z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
@@ -150,7 +150,7 @@ export default function MfaPage() {
                 <p className="rounded-md bg-[#fef2f2] px-3 py-2 text-sm font-semibold text-[#b42318]">{error}</p>
               ) : (
                 <p className="rounded-md bg-[#eff6ff] px-3 py-2 text-xs font-semibold text-[#1d4ed8]">
-                  Open your authenticator app (Google Authenticator, Authy, etc.) and enter the current code.
+                  Please check your inbox. The OTP is valid for 5 minutes.
                 </p>
               )}
 
