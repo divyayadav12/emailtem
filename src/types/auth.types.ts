@@ -2,7 +2,7 @@ export type AuthUser = {
   id: string;
   name: string;
   email: string;
-  role: "super_admin" | "manager" | "user";
+  role: "super_admin" | "admin" | "manager" | "user";
 };
 
 export type AuthTokens = {

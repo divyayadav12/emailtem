@@ -8,10 +8,11 @@ export const authService = {
       body: JSON.stringify({ email, password }),
     });
   },
-  register(name: string, email: string, password: string, role: string) {
+  register(name: string, email: string, password: string, role: string, token?: string | null) {
     return api.request<AuthSession>("/auth/register", {
       method: "POST",
       body: JSON.stringify({ name, email, password, role }),
+      token: token || undefined,
     });
   },
   logout() {

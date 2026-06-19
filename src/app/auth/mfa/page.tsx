@@ -49,8 +49,7 @@ export default function MfaPage() {
         id: userIdStr,
         name: email.split("@")[0], // Fallback name
         email: email,
-        role: res.role.toLowerCase(), // role is SUPER_ADMIN, etc.
-        avatar: "",
+        role: res.role.toLowerCase() as any, // role is SUPER_ADMIN, etc.
       });
 
       setVerified(true);

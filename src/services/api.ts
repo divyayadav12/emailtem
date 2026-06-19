@@ -9,7 +9,7 @@ export const api = {
     const headers = new Headers(options.headers);
     headers.set("Content-Type", "application/json");
 
-    if (options.token) {
+    if (options.token && options.token !== "null" && options.token !== "undefined") {
       headers.set("Authorization", `Bearer ${options.token}`);
     }
 

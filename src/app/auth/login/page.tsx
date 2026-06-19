@@ -150,28 +150,30 @@ export default function LoginPage() {
                   )}
                 </button>
               </span>
-              <div className="flex justify-end">
-                <Link className="text-sm font-bold text-[#243ea7] hover:text-[#162b78]" href="/auth/forgot-password">
-                  Forgot password?
-                </Link>
-              </div>
             </label>
 
-            {/* Remember */}
-            <label className="flex items-center gap-2 text-sm font-medium text-[#4b5563]">
-              <input className="h-4 w-4 rounded border-[#cfd5df] accent-[#243ea7]" type="checkbox" />
-              Remember this device for 30 days
-            </label>
+            {/* Options */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <input type="checkbox" className="h-4 w-4 rounded border-[#cfd5df] text-[#243ea7] focus:ring-[#243ea7] transition group-hover:border-[#243ea7]" />
+                <span className="text-sm font-medium text-[#4b5563] group-hover:text-[#111827] transition">
+                  Remember this device for 30 days
+                </span>
+              </label>
+              <Link href={`/auth/forgot-password${email ? `?email=${encodeURIComponent(email)}` : ''}`} className="text-sm font-bold text-[#243ea7] hover:underline hover:text-[#1e2f8a] transition">
+                Forgot password?
+              </Link>
+            </div>
 
             {/* Error */}
             {error && (
               <p className="rounded-md bg-[#fef2f2] px-3 py-2 text-sm font-semibold text-[#b42318]">{error}</p>
             )}
 
+            {/* Submit */}
             <button
-              className="flex h-11 items-center justify-center gap-2 rounded-md bg-[#283da8] text-sm font-bold text-white shadow-[0_8px_18px_rgba(40,61,168,0.28)] transition hover:bg-[#1e2f8a] disabled:opacity-60 disabled:cursor-not-allowed sm:h-12"
-              type="submit"
               disabled={loading}
+              className="mt-2 flex h-11 items-center justify-center gap-2 rounded-md bg-[#283da8] text-sm font-bold text-white shadow-[0_8px_18px_rgba(40,61,168,0.28)] transition hover:bg-[#1e2f8a] disabled:opacity-70 sm:h-12"
             >
               {loading ? (
                 <>
@@ -185,15 +187,15 @@ export default function LoginPage() {
                 "Login"
               )}
             </button>
-          </div>
 
-          {/* Sign up link */}
-          <p className="mt-5 text-center text-sm text-[#4b5563]">
-            Don&apos;t have an account?{" "}
-            <Link className="font-bold text-[#243ea7] hover:text-[#162b78] hover:underline" href="/auth/register">
-              Sign up
-            </Link>
-          </p>
+            {/* Sign up link */}
+            <div className="mt-6 text-center text-sm font-medium text-[#6b7280]">
+              Don't have an account?{" "}
+              <Link href={`/auth/register${email ? `?email=${encodeURIComponent(email)}` : ''}`} className="font-bold text-[#243ea7] hover:underline hover:text-[#1e2f8a] transition">
+                Sign up
+              </Link>
+            </div>
+          </div>
         </form>
 
         {/* Quick login role picker */}

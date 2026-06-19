@@ -1,19 +1,56 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { api } from "@/services/api";
 
 type Step = "REQUEST_TOKEN" | "RESET_PASSWORD" | "SUCCESS";
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordForm() {
+  const searchParams = useSearchParams();
+  const urlEmail = searchParams.get("email");
+
   const [step, setStep] = useState<Step>("REQUEST_TOKEN");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(urlEmail === "admin@enterprise.com" ? urlEmail : "");
   const [resetToken, setResetToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  if (urlEmail && urlEmail !== "admin@enterprise.com") {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center bg-[radial-gradient(circle_at_top_right,#eef2ff_0,#f8fafc_36%,#f7fafc_100%)] px-4 py-6 text-[#111827] sm:py-8">
+        <section className="flex w-full max-w-md flex-col items-center text-center">
+          <div className="mb-6 flex flex-col items-center sm:mb-8">
+            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[#243ea7] shadow-sm sm:h-14 sm:w-14">
+              <svg aria-hidden="true" className="h-6 w-6 text-white sm:h-7 sm:w-7" fill="none" viewBox="0 0 24 24">
+                <path d="M12 3.5l6 2.2v5.1c0 4-2.4 7.6-6 9.1-3.6-1.5-6-5.1-6-9.1V5.7l6-2.2z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+                <path d="M10.4 12.1l1.1 1.2 2.4-3" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+              </svg>
+            </div>
+            <h1 className="mt-4 text-2xl font-bold text-[#1d348f] sm:mt-5 sm:text-3xl">SecureMail Enterprise</h1>
+          </div>
+
+          <div className="w-full rounded-xl border border-[#d9dee8] bg-white p-6 shadow-[0_12px_35px_rgba(15,23,42,0.08)] sm:p-8">
+            <h2 className="text-xl font-bold text-[#111827]">Admin Access Required</h2>
+            <p className="mt-4 text-sm text-[#4b5563]">
+              Only administrators can request a password reset. Please contact support if you need assistance.
+            </p>
+            <div className="mt-8">
+              <Link
+                href="/auth/login"
+                className="flex h-11 items-center justify-center gap-2 rounded-md bg-[#283da8] text-sm font-bold text-white shadow-[0_8px_18px_rgba(40,61,168,0.28)] transition hover:bg-[#1e2f8a] sm:h-12 w-full"
+              >
+                Return to Login
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   async function handleRequestToken(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -245,5 +282,13 @@ export default function ForgotPasswordPage() {
         <Link href="/support">Support</Link>
       </footer>
     </main>
+  );
+}
+
+export default function ForgotPasswordPage() {
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}>
+      <ForgotPasswordForm />
+    </Suspense>
   );
 }
