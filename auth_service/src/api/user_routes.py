@@ -30,8 +30,7 @@ def create_user_route(
         role_required(
             [
                 "SUPER_ADMIN",
-                "ADMIN",
-                "MANAGER"
+                "ADMIN"
             ]
         )
     )

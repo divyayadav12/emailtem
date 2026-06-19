@@ -35,6 +35,9 @@ router = APIRouter(
 )
 
 
+from core.dependencies import role_required
+from fastapi import Depends
+
 @router.post("/register")
 def register(
     data: RegisterRequest

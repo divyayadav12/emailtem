@@ -616,9 +616,10 @@ def forgot_password(data: ForgotPasswordRequest):
 
         cur.execute(
             """
-            SELECT id
-            FROM users
-            WHERE email = %s
+            SELECT u.id, r.name
+            FROM users u
+            JOIN roles r ON u.role_id = r.id
+            WHERE u.email = %s
             """,
             (data.email,)
         )
@@ -632,6 +633,13 @@ def forgot_password(data: ForgotPasswordRequest):
             )
 
         user_id = user[0]
+        role_name = user[1]
+        
+        if role_name not in ["ADMIN", "SUPER_ADMIN"]:
+            raise HTTPException(
+                status_code=403,
+                detail="Only administrators can reset passwords."
+            )
 
         reset_token = str(
             secrets.randbelow(900000)
