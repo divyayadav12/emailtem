@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
-
+from services.email_service import send_otp_email
 import bcrypt
 import jwt
 import os
@@ -349,6 +349,12 @@ def login(data: LoginRequest):
                 expires_at
             )
         )
+        
+        send_otp_email(
+    email,
+    otp
+)
+        
 
         # Audit Log
 
@@ -379,9 +385,10 @@ def login(data: LoginRequest):
 
         conn.commit()
 
-        print(
-            f"MFA OTP: {otp}"
-        )
+        send_otp_email(
+    email,
+    otp
+)
 
         return {
             "message": "OTP Sent",
@@ -626,7 +633,15 @@ def forgot_password(data: ForgotPasswordRequest):
 
         user_id = user[0]
 
-        reset_token = secrets.token_urlsafe(32)
+        reset_token = str(
+            secrets.randbelow(900000)
+            + 100000
+        )
+        
+        send_otp_email(
+            data.email,
+            reset_token
+        )
 
         expires_at = datetime.utcnow() + timedelta(minutes=15)
 
@@ -680,8 +695,7 @@ def forgot_password(data: ForgotPasswordRequest):
         conn.commit()
 
         return {
-            "message": "Password reset token generated",
-            "reset_token": reset_token
+            "message": "Password reset OTP sent to email"
         }
 
     except HTTPException:

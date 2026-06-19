@@ -189,8 +189,7 @@ def update_user(user_id, data):
             UPDATE users
             SET
                 name = %s,
-                email = %s,
-                updated_at = CURRENT_TIMESTAMP
+                email = %s
             WHERE id = %s
             RETURNING id
             """,
@@ -232,8 +231,7 @@ def disable_user(user_id):
             """
             UPDATE users
             SET
-                is_active = FALSE,
-                updated_at = CURRENT_TIMESTAMP
+                is_active = FALSE
             WHERE id = %s
             RETURNING id
             """,
@@ -291,8 +289,7 @@ def assign_role(user_id, data):
             """
             UPDATE users
             SET
-                role_id = %s,
-                updated_at = CURRENT_TIMESTAMP
+                role_id = %s
             WHERE id = %s
             RETURNING id
             """,
