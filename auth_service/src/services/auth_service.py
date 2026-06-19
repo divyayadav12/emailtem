@@ -37,6 +37,7 @@ class RegisterRequest(BaseModel):
     name: str
     email: str
     password: str
+    role: str = "EMPLOYEE"
 
 
 class LoginRequest(BaseModel):

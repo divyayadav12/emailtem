@@ -5,6 +5,7 @@ from schemas.auth import (
     LoginRequest,
     LogoutRequest
 )
+
 from schemas.auth import (
     VerifyOtpRequest
 )
