@@ -2,20 +2,71 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { api } from "@/services/api";
+
+type Step = "REQUEST_TOKEN" | "RESET_PASSWORD" | "SUCCESS";
 
 export default function ForgotPasswordPage() {
+  const [step, setStep] = useState<Step>("REQUEST_TOKEN");
   const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [resetToken, setResetToken] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleRequestToken(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+    
     if (!email.includes("@")) {
       setError("Please enter a valid email address.");
       return;
     }
-    setSubmitted(true);
+
+    setLoading(true);
+    try {
+      const res = await api.request<{ message: string; reset_token: string }>("/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      
+      // Store the token (in a real app this goes to email, but here we show it so the user can copy/paste it)
+      setResetToken(res.reset_token);
+      setStep("RESET_PASSWORD");
+    } catch (err: any) {
+      setError(err.message || "Failed to request reset token.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResetPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+
+    if (!resetToken) {
+      setError("Please enter the reset token.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.request<{ message: string }>("/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({ reset_token: resetToken.trim(), new_password: newPassword }),
+      });
+      
+      setStep("SUCCESS");
+    } catch (err: any) {
+      setError(err.message || "Failed to reset password. Token might be invalid or expired.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -34,10 +85,10 @@ export default function ForgotPasswordPage() {
           <p className="mt-1.5 text-sm font-medium text-[#6b7280]">Precision Security Workspace</p>
         </div>
 
-        {!submitted ? (
+        {step === "REQUEST_TOKEN" && (
           <form
             className="w-full max-w-[460px] rounded-xl border border-[#d9dee8] bg-white p-6 shadow-[0_12px_35px_rgba(15,23,42,0.08)] sm:p-8"
-            onSubmit={handleSubmit}
+            onSubmit={handleRequestToken}
           >
             {/* Header */}
             <div className="mb-6 sm:mb-7">
@@ -48,8 +99,8 @@ export default function ForgotPasswordPage() {
                   <circle cx="12" cy="14.5" r="1" fill="currentColor" />
                 </svg>
               </div>
-              <h2 className="text-lg font-bold text-[#111827] sm:text-xl">Reset Password</h2>
-              <p className="mt-1 text-sm text-[#4b5563]">Enter your email to receive a secure password reset link.</p>
+              <h2 className="text-lg font-bold text-[#111827] sm:text-xl">Forgot Password</h2>
+              <p className="mt-1 text-sm text-[#4b5563]">Enter your email to receive a secure reset token.</p>
             </div>
 
             <div className="grid gap-4 sm:gap-5">
@@ -67,28 +118,22 @@ export default function ForgotPasswordPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </span>
               </label>
 
-              {/* Error / hint */}
-              {error ? (
+              {error && (
                 <p className="rounded-md bg-[#fef2f2] px-3 py-2 text-sm font-semibold text-[#b42318]">{error}</p>
-              ) : (
-                <p className="rounded-md bg-[#eff6ff] px-3 py-2 text-xs font-semibold text-[#1d4ed8]">
-                  We'll send a secure reset link valid for 24 hours.
-                </p>
               )}
 
               {/* Submit */}
               <button
-                className="flex h-11 items-center justify-center gap-2 rounded-md bg-[#283da8] text-sm font-bold text-white shadow-[0_8px_18px_rgba(40,61,168,0.28)] transition hover:bg-[#1e2f8a] sm:h-12"
+                disabled={loading}
+                className="flex h-11 items-center justify-center gap-2 rounded-md bg-[#283da8] text-sm font-bold text-white shadow-[0_8px_18px_rgba(40,61,168,0.28)] transition hover:bg-[#1e2f8a] disabled:opacity-70 sm:h-12"
                 type="submit"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24">
-                  <path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                Send Reset Link
+                {loading ? "Requesting..." : "Get Reset Token"}
               </button>
             </div>
 
@@ -98,48 +143,98 @@ export default function ForgotPasswordPage() {
               </Link>
             </div>
           </form>
+        )}
 
-        ) : (
+        {step === "RESET_PASSWORD" && (
+          <form
+            className="w-full max-w-[460px] rounded-xl border border-[#d9dee8] bg-white p-6 shadow-[0_12px_35px_rgba(15,23,42,0.08)] sm:p-8"
+            onSubmit={handleResetPassword}
+          >
+            <div className="mb-6 sm:mb-7">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#eef2ff]">
+                <svg className="h-5 w-5 text-[#243ea7]" fill="none" viewBox="0 0 24 24">
+                  <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <h2 className="text-lg font-bold text-[#111827] sm:text-xl">Reset Password</h2>
+              <p className="mt-1 text-sm text-[#4b5563]">Enter the reset token (OTP) and your new password.</p>
+            </div>
+
+            {/* Note about token (mock email scenario) */}
+            <div className="mb-5 rounded-md bg-[#eff6ff] p-3 text-xs font-semibold text-[#1d4ed8]">
+              <p>For demo purposes, your reset token was automatically filled. In production, this would be sent to your email.</p>
+            </div>
+
+            <div className="grid gap-4 sm:gap-5">
+              <label className="grid gap-2">
+                <span className="text-sm font-semibold text-[#374151]">Reset Token</span>
+                <span className="flex h-11 items-center gap-3 rounded-md border border-[#cfd5df] bg-white px-3 focus-within:border-[#243ea7] focus-within:ring-2 focus-within:ring-[#dbe5ff] sm:h-12">
+                  <input
+                    className="h-full min-w-0 flex-1 border-0 bg-transparent text-sm font-medium text-[#111827] outline-none placeholder:text-[#8a93a3]"
+                    placeholder="Enter reset token"
+                    type="text"
+                    value={resetToken}
+                    onChange={(e) => setResetToken(e.target.value)}
+                    required
+                  />
+                </span>
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-sm font-semibold text-[#374151]">New Password</span>
+                <span className="flex h-11 items-center gap-3 rounded-md border border-[#cfd5df] bg-white px-3 focus-within:border-[#243ea7] focus-within:ring-2 focus-within:ring-[#dbe5ff] sm:h-12">
+                  <input
+                    className="h-full min-w-0 flex-1 border-0 bg-transparent text-sm font-medium text-[#111827] outline-none placeholder:text-[#8a93a3]"
+                    placeholder="••••••••"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                  />
+                </span>
+              </label>
+
+              {error && (
+                <p className="rounded-md bg-[#fef2f2] px-3 py-2 text-sm font-semibold text-[#b42318]">{error}</p>
+              )}
+
+              <button
+                disabled={loading}
+                className="flex h-11 items-center justify-center gap-2 rounded-md bg-[#283da8] text-sm font-bold text-white shadow-[0_8px_18px_rgba(40,61,168,0.28)] transition hover:bg-[#1e2f8a] disabled:opacity-70 sm:h-12"
+                type="submit"
+              >
+                {loading ? "Resetting..." : "Reset Password"}
+              </button>
+            </div>
+            
+            <div className="mt-6 border-t border-[#e5e7eb] pt-5 text-center">
+              <button onClick={() => setStep("REQUEST_TOKEN")} type="button" className="text-sm font-bold text-[#243ea7] hover:text-[#162b78]">
+                ← Back
+              </button>
+            </div>
+          </form>
+        )}
+
+        {step === "SUCCESS" && (
           <div className="w-full max-w-[460px] rounded-xl border border-[#d9dee8] bg-white p-6 shadow-[0_12px_35px_rgba(15,23,42,0.08)] sm:p-8">
             <div className="flex flex-col items-center text-center">
-              {/* Success icon */}
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#ecfdf5] sm:h-16 sm:w-16">
                 <svg className="h-7 w-7 text-[#16a34a] sm:h-8 sm:w-8" fill="none" viewBox="0 0 24 24">
                   <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
 
-              <h2 className="mt-5 text-lg font-bold text-[#111827] sm:text-xl">Check Your Email</h2>
+              <h2 className="mt-5 text-lg font-bold text-[#111827] sm:text-xl">Password Reset Successful</h2>
               <p className="mt-2 text-sm text-[#4b5563]">
-                We sent a reset link to{" "}
-                <span className="font-semibold text-[#111827] break-all">{email}</span>
+                Your password has been successfully updated. You can now use your new password to log in.
               </p>
 
-              <div className="mt-5 w-full rounded-lg bg-[#f0fdf4] px-4 py-3 text-left space-y-1.5">
-                <p className="flex items-center gap-2 text-xs font-semibold text-[#166534]">
-                  <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24">
-                    <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  Reset link valid for 24 hours
-                </p>
-                <p className="flex items-center gap-2 text-xs font-semibold text-[#166534]">
-                  <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24">
-                    <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  Check your spam folder if you don't see it
-                </p>
-              </div>
-
-              <button
-                onClick={() => { setSubmitted(false); setEmail(""); }}
-                className="mt-5 flex h-11 w-full items-center justify-center rounded-md border border-[#e2e6ef] text-sm font-semibold text-[#374151] transition hover:bg-[#f3f4f6] sm:h-12"
-              >
-                Try a different email
-              </button>
-
-              <div className="mt-5 border-t border-[#e5e7eb] pt-4 w-full text-center">
-                <Link href="/auth/login" className="text-sm font-bold text-[#243ea7] hover:text-[#162b78]">
-                  ← Back to Login
+              <div className="mt-6 w-full">
+                <Link
+                  href="/auth/login"
+                  className="flex h-11 w-full items-center justify-center rounded-md bg-[#283da8] text-sm font-bold text-white shadow-[0_8px_18px_rgba(40,61,168,0.28)] transition hover:bg-[#1e2f8a] sm:h-12"
+                >
+                  Go to Login
                 </Link>
               </div>
             </div>
