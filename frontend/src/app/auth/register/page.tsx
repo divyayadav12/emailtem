@@ -36,8 +36,6 @@ const roles = [
 function RegisterForm() {
   const router = useRouter();
   const { accessToken, user } = useAuth();
-  const searchParams = useSearchParams();
-  const urlEmail = searchParams.get("email");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -86,41 +84,6 @@ function RegisterForm() {
     }
   }
 
-  const isAdminByLogin = accessToken && (user?.role === "admin" || user?.role === "super_admin");
-  const isAdminByUrl = urlEmail === "admin@enterprise.com";
-
-  if (!isAdminByLogin && !isAdminByUrl) {
-    return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-[radial-gradient(circle_at_top_right,#eef2ff_0,#f8fafc_36%,#f7fafc_100%)] px-4 py-6 text-[#111827] sm:py-8">
-        <section className="flex w-full max-w-md flex-col items-center text-center">
-          <div className="mb-6 flex flex-col items-center sm:mb-8">
-            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[#243ea7] shadow-sm sm:h-14 sm:w-14">
-              <svg aria-hidden="true" className="h-6 w-6 text-white sm:h-7 sm:w-7" fill="none" viewBox="0 0 24 24">
-                <path d="M12 3.5l6 2.2v5.1c0 4-2.4 7.6-6 9.1-3.6-1.5-6-5.1-6-9.1V5.7l6-2.2z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
-                <path d="M10.4 12.1l1.1 1.2 2.4-3" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
-              </svg>
-            </div>
-            <h1 className="mt-4 text-2xl font-bold text-[#1d348f] sm:mt-5 sm:text-3xl">SecureMail Enterprise</h1>
-          </div>
-
-          <div className="w-full rounded-xl border border-[#d9dee8] bg-white p-6 shadow-[0_12px_35px_rgba(15,23,42,0.08)] sm:p-8">
-            <h2 className="text-xl font-bold text-[#111827]">Admin Access Required</h2>
-            <p className="mt-4 text-sm text-[#4b5563]">
-              Public registration is disabled. You must be logged in as an Administrator to access this registration page.
-            </p>
-            <div className="mt-8">
-              <Link
-                href="/auth/login"
-                className="flex h-11 items-center justify-center gap-2 rounded-md bg-[#283da8] text-sm font-bold text-white shadow-[0_8px_18px_rgba(40,61,168,0.28)] transition hover:bg-[#1e2f8a] sm:h-12 w-full"
-              >
-                Return to Login
-              </Link>
-            </div>
-          </div>
-        </section>
-      </main>
-    );
-  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between bg-[radial-gradient(circle_at_top_right,#eef2ff_0,#f8fafc_36%,#f7fafc_100%)] px-4 py-6 text-[#111827] sm:py-8">

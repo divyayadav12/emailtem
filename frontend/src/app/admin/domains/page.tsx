@@ -1,18 +1,13 @@
 "use client";
 
-import { useState } from "react";
-
-const initialDomains = [
-  { id: 1, domain: "enterprise.com", mx: "Verified", spf: "Aligned", dkim: "Verified", status: "Active", added: "Jan 12, 2024" },
-  { id: 2, domain: "sales.enterprise.com", mx: "Verified", spf: "Aligned", dkim: "Pending", status: "Active", added: "Mar 5, 2024" },
-  { id: 3, domain: "dev-ops.internal", mx: "Pending", spf: "Review", dkim: "Not set", status: "Pending", added: "Aug 10, 2024" },
-  { id: 4, domain: "legacy.enterprise.com", mx: "Verified", spf: "Aligned", dkim: "Verified", status: "Inactive", added: "Nov 3, 2023" },
-];
+import { useState, useEffect } from "react";
+import { domainService } from "@/services/domain.service";
 
 const statusColors: Record<string, string> = {
-  Active: "bg-[#dcfce7] text-[#166534]",
-  Pending: "bg-[#fef3c7] text-[#92400e]",
-  Inactive: "bg-[#f3f4f6] text-[#6b7280]",
+  ACTIVE: "bg-[#dcfce7] text-[#166534]",
+  VERIFIED: "bg-[#dcfce7] text-[#166534]",
+  PENDING: "bg-[#fef3c7] text-[#92400e]",
+  INACTIVE: "bg-[#f3f4f6] text-[#6b7280]",
 };
 
 const recordColor = (val: string) => {
@@ -22,26 +17,63 @@ const recordColor = (val: string) => {
 };
 
 export default function DomainsPage() {
-  const [domains, setDomains] = useState(initialDomains);
+  const [domains, setDomains] = useState<any[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [newDomain, setNewDomain] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  function addDomain() {
+  useEffect(() => {
+    fetchDomains();
+  }, []);
+
+  async function fetchDomains() {
+    try {
+      setLoading(true);
+      const data = await domainService.getDomains();
+      setDomains(data || []);
+      setError("");
+    } catch (err: any) {
+      console.error(err);
+      setError("Failed to fetch domains");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function addDomain() {
     if (!newDomain.trim()) return;
-    setDomains((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        domain: newDomain.trim(),
-        mx: "Pending",
-        spf: "Pending",
-        dkim: "Not set",
-        status: "Pending",
-        added: "Today",
-      },
-    ]);
-    setNewDomain("");
-    setShowAdd(false);
+    try {
+      setLoading(true);
+      setError("");
+      const res = await domainService.addDomain(newDomain.trim());
+      if (res.error) {
+        setError(res.error);
+        return;
+      }
+      setNewDomain("");
+      setShowAdd(false);
+      await fetchDomains();
+    } catch (err: any) {
+      console.error(err);
+      setError("Failed to add domain");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function verifyDomain(id: number) {
+    try {
+      setLoading(true);
+      setError("");
+      await domainService.verifyDomain(id);
+      await fetchDomains();
+    } catch (err: any) {
+      console.error(err);
+      setError("Failed to verify domain");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -64,6 +96,12 @@ export default function DomainsPage() {
           </button>
         </div>
 
+        {error && (
+          <div className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
+            {error}
+          </div>
+        )}
+
         {/* Add domain inline */}
         {showAdd && (
           <div className="mb-4 flex gap-2 rounded-xl border border-[#e2e6ef] bg-white p-4">
@@ -73,12 +111,13 @@ export default function DomainsPage() {
               onChange={(e) => setNewDomain(e.target.value)}
               placeholder="newdomain.com"
               onKeyDown={(e) => e.key === "Enter" && addDomain()}
-              className="flex-1 rounded-lg border border-[#e2e6ef] px-3 py-2 text-sm text-[#111827] outline-none focus:border-[#243ea7] focus:ring-2 focus:ring-[#eef2ff]"
+              disabled={loading}
+              className="flex-1 rounded-lg border border-[#e2e6ef] px-3 py-2 text-sm text-[#111827] outline-none focus:border-[#243ea7] focus:ring-2 focus:ring-[#eef2ff] disabled:opacity-50"
             />
-            <button onClick={addDomain} className="rounded-lg bg-[#243ea7] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1e2f8a] transition">
+            <button disabled={loading} onClick={addDomain} className="rounded-lg bg-[#243ea7] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1e2f8a] transition disabled:opacity-50">
               Add
             </button>
-            <button onClick={() => setShowAdd(false)} className="rounded-lg border border-[#e2e6ef] px-4 py-2 text-sm font-semibold text-[#374151] hover:bg-[#f3f4f6] transition">
+            <button disabled={loading} onClick={() => { setShowAdd(false); setError(""); }} className="rounded-lg border border-[#e2e6ef] px-4 py-2 text-sm font-semibold text-[#374151] hover:bg-[#f3f4f6] transition disabled:opacity-50">
               Cancel
             </button>
           </div>
@@ -90,44 +129,55 @@ export default function DomainsPage() {
             <thead>
               <tr className="border-b border-[#e2e6ef] bg-[#f9fafb] text-left text-xs font-bold text-[#6b7280]">
                 <th className="px-5 py-3">Domain</th>
-                <th className="px-4 py-3">MX</th>
-                <th className="px-4 py-3">SPF</th>
-                <th className="px-4 py-3">DKIM</th>
+                <th className="px-4 py-3">Verification Token</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Added</th>
-                <th className="px-4 py-3" />
+                <th className="px-4 py-3 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f0f2f5]">
-              {domains.map((d) => (
-                <tr key={d.id} className="hover:bg-[#f9fafb] transition">
-                  <td className="px-5 py-3 font-semibold text-[#111827]">{d.domain}</td>
-                  <td className={`px-4 py-3 font-medium ${recordColor(d.mx)}`}>{d.mx}</td>
-                  <td className={`px-4 py-3 font-medium ${recordColor(d.spf)}`}>{d.spf}</td>
-                  <td className={`px-4 py-3 font-medium ${recordColor(d.dkim)}`}>{d.dkim}</td>
-                  <td className="px-4 py-3">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${statusColors[d.status]}`}>
-                      {d.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-[#9ca3af]">{d.added}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => setDomains((prev) => prev.filter((x) => x.id !== d.id))}
-                      className="text-xs font-semibold text-[#dc2626] hover:underline"
-                    >
-                      Remove
-                    </button>
-                  </td>
+              {loading && domains.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-5 py-8 text-center text-[#6b7280]">Loading domains...</td>
                 </tr>
-              ))}
+              ) : domains.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-5 py-8 text-center text-[#6b7280]">No domains found.</td>
+                </tr>
+              ) : (
+                domains.map((d) => (
+                  <tr key={d.id} className="hover:bg-[#f9fafb] transition">
+                    <td className="px-5 py-3 font-semibold text-[#111827]">{d.domain_name}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-[#6b7280] max-w-[200px] truncate" title={d.verification_token}>
+                      {d.verification_token}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${statusColors[d.status?.toUpperCase()] || statusColors.PENDING}`}>
+                        {d.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {d.status?.toUpperCase() !== "VERIFIED" && d.status?.toUpperCase() !== "ACTIVE" ? (
+                        <button
+                          disabled={loading}
+                          onClick={() => verifyDomain(d.id)}
+                          className="text-xs font-semibold text-[#243ea7] hover:underline disabled:opacity-50"
+                        >
+                          Verify Now
+                        </button>
+                      ) : (
+                        <span className="text-xs font-semibold text-[#16a34a]">Verified</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Info box */}
         <div className="mt-4 rounded-xl border border-[#dbeafe] bg-[#eff6ff] px-4 py-3 text-xs text-[#1e40af]">
-          <strong>Tip:</strong> New domains may take up to 48 hours for MX propagation. Verify SPF and DKIM records in your DNS provider after adding a domain.
+          <strong>Tip:</strong> New domains may take up to 48 hours for MX propagation. Verify SPF and DKIM records in your DNS provider after adding a domain. To verify ownership, place the verification token in a TXT record.
         </div>
       </div>
     </div>
