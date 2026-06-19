@@ -5,7 +5,12 @@ from schemas.auth import (
     LoginRequest,
     LogoutRequest
 )
-
+from schemas.auth import (
+    VerifyOtpRequest
+)
+from services.auth_service import (
+    verify_mfa_otp
+)
 from services.auth_service import (
     register as register_user,
     login as login_user,
@@ -75,3 +80,12 @@ def change_password_route(
     data: ChangePasswordRequest
 ):
     return change_password(data)
+@router.post(
+    "/verify-otp"
+)
+def verify_otp(
+    data: VerifyOtpRequest
+):
+    return verify_mfa_otp(
+        data
+    )

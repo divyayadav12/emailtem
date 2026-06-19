@@ -34,3 +34,6 @@ class ChangePasswordRequest(BaseModel):
     email: str
     old_password: str
     new_password: str
+class VerifyOtpRequest(BaseModel):
+    user_id: int
+    otp: str

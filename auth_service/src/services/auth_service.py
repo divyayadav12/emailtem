@@ -10,6 +10,17 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 from database.connection import get_connection
+import secrets
+
+from datetime import (
+    datetime,
+    timedelta
+)
+from core.security import (
+    hash_password,
+    verify_password,
+    create_access_token
+)
 
 load_dotenv()
 
@@ -213,6 +224,7 @@ def login(data: LoginRequest):
     cur = conn.cursor()
 
     try:
+
         cur.execute(
             """
             SELECT
@@ -237,13 +249,13 @@ def login(data: LoginRequest):
                 status_code=401,
                 detail="Invalid email or password"
             )
+
         user_id = user[0]
         email = user[1]
         password_hash = user[2]
         failed_attempts = user[3]
         account_locked = user[4]
         role = user[5]
-
 
         if account_locked:
             raise HTTPException(
@@ -290,17 +302,7 @@ def login(data: LoginRequest):
                 detail="Invalid email or password"
             )
 
-        expiry = datetime.utcnow() + timedelta(minutes=30)
-        token = jwt.encode(
-            {
-                "user_id": user_id,
-                "email": email,
-                "role": role,
-                "exp": expiry
-            },
-            SECRET_KEY,
-            algorithm=ALGORITHM
-        )
+        # Reset failed attempts
 
         cur.execute(
             """
@@ -313,18 +315,28 @@ def login(data: LoginRequest):
             (user_id,)
         )
 
+        # Generate MFA OTP
+
+        otp = str(
+            secrets.randbelow(900000)
+            + 100000
+        )
+
+        expires_at = (
+            datetime.utcnow()
+            + timedelta(minutes=5)
+        )
+
         cur.execute(
             """
-            INSERT INTO auth_tokens
+            INSERT INTO mfa_otps
             (
                 user_id,
-                token,
-                token_type,
+                otp,
                 expires_at
             )
             VALUES
             (
-                %s,
                 %s,
                 %s,
                 %s
@@ -332,11 +344,12 @@ def login(data: LoginRequest):
             """,
             (
                 user_id,
-                token,
-                "ACCESS",
-                expiry
+                otp,
+                expires_at
             )
         )
+
+        # Audit Log
 
         cur.execute(
             """
@@ -357,7 +370,7 @@ def login(data: LoginRequest):
             """,
             (
                 user_id,
-                "USER_LOGIN",
+                "OTP_GENERATED",
                 "users",
                 user_id
             )
@@ -365,10 +378,14 @@ def login(data: LoginRequest):
 
         conn.commit()
 
+        print(
+            f"MFA OTP: {otp}"
+        )
+
         return {
-            "access_token": token,
-            "token_type": "bearer",
-            "role": role
+            "message": "OTP Sent",
+            "user_id": user_id,
+            "expires_in": "5 minutes"
         }
 
     except HTTPException:
@@ -387,7 +404,6 @@ def login(data: LoginRequest):
 
         cur.close()
         conn.close()
-
 
 @router.post("/verify-email")
 def verify_email(data: VerifyEmailRequest):
@@ -900,6 +916,108 @@ def change_password(data: ChangePasswordRequest):
             status_code=500,
             detail=str(e)
         )
+
+    finally:
+
+        cur.close()
+        conn.close()
+def verify_mfa_otp(data):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    try:
+
+        cur.execute(
+            """
+            SELECT
+                id,
+                expires_at,
+                is_used
+            FROM mfa_otps
+            WHERE
+                user_id = %s
+                AND otp = %s
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (
+                data.user_id,
+                data.otp
+            )
+        )
+
+        otp_record = cur.fetchone()
+
+        if not otp_record:
+
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid OTP"
+            )
+
+        otp_id = otp_record[0]
+        expires_at = otp_record[1]
+        is_used = otp_record[2]
+
+        # OTP already used
+
+        if is_used:
+
+            raise HTTPException(
+                status_code=401,
+                detail="OTP already used"
+            )
+
+        # OTP expired
+
+        if datetime.utcnow() > expires_at:
+
+            raise HTTPException(
+                status_code=401,
+                detail="OTP expired"
+            )
+
+        # Mark used
+
+        cur.execute(
+            """
+            UPDATE mfa_otps
+            SET is_used = TRUE
+            WHERE id = %s
+            """,
+            (otp_id,)
+        )
+
+        cur.execute(
+            """
+            SELECT
+                u.id,
+                u.email,
+                r.name
+            FROM users u
+            JOIN roles r
+            ON u.role_id = r.id
+            WHERE u.id = %s
+            """,
+            (data.user_id,)
+        )
+
+        user = cur.fetchone()
+
+        token = create_access_token(
+            user[0],
+            user[1],
+            user[2]
+        )
+
+        conn.commit()
+
+        return {
+            "message": "Login Successful",
+            "access_token": token,
+            "role": user[2]
+        }
 
     finally:
 
